@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CalcNova - fast, modern and responsive online calculator.">
+  <title>CalcNova — Online Calculator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">C</div>
+        <div>
+          <h1>CalcNova</h1>
+          <p>Smart Online Calculator</p>
+        </div>
+      </div>
+      <button id="themeBtn" class="icon-btn" aria-label="Toggle theme">☀</button>
+    </header>
+
+    <section class="calculator">
+      <div class="display">
+        <div id="expression" class="expression">0</div>
+        <div id="result" class="result">0</div>
+      </div>
+
+      <div class="toolbar">
+        <button id="modeBtn" class="tool-btn">Scientific</button>
+        <button id="clearHistoryBtn" class="tool-btn">Clear History</button>
+      </div>
+
+      <div id="scientificPad" class="scientific hidden">
+        <button data-action="constant" data-value="Math.PI">π</button>
+        <button data-action="constant" data-value="Math.E">e</button>
+        <button data-action="func" data-value="sin">sin</button>
+        <button data-action="func" data-value="cos">cos</button>
+        <button data-action="func" data-value="tan">tan</button>
+        <button data-action="func" data-value="sqrt">√</button>
+        <button data-action="func" data-value="log">log</button>
+        <button data-action="func" data-value="ln">ln</button>
+        <button data-action="square">x²</button>
+        <button data-action="inverse">1/x</button>
+      </div>
+
+      <div class="keypad">
+        <button class="danger" data-action="clear">AC</button>
+        <button data-action="backspace">⌫</button>
+        <button data-action="percent">%</button>
+        <button class="operator" data-value="/">÷</button>
+
+        <button data-value="7">7</button>
+        <button data-value="8">8</button>
+        <button data-value="9">9</button>
+        <button class="operator" data-value="*">×</button>
+
+        <button data-value="4">4</button>
+        <button data-value="5">5</button>
+        <button data-value="6">6</button>
+        <button class="operator" data-value="-">−</button>
+
+        <button data-value="1">1</button>
+        <button data-value="2">2</button>
+        <button data-value="3">3</button>
+        <button class="operator" data-value="+">+</button>
+
+        <button class="zero" data-value="0">0</button>
+        <button data-value=".">.</button>
+        <button class="equals" data-action="equals">=</button>
+      </div>
+
+      <section class="history-section">
+        <div class="history-title">
+          <h2>History</h2>
+          <span id="historyCount">0 calculations</span>
+        </div>
+        <div id="history" class="history">
+          <p class="empty">Your calculations will appear here.</p>
+        </div>
+      </section>
+    </section>
+
+    <footer>CalcNova • Built with HTML, CSS & JavaScript • GitHub Pages ready</footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
