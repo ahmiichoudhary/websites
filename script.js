@@ -1,135 +1,349 @@
-const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
-let expr="", calculated=false, memory=0, angle="DEG", sound=true;
-let history=JSON.parse(localStorage.getItem("calcnova-pro-history")||"[]");
+(() => {
+  "use strict";
 
-const expressionEl=$("#expression"), resultEl=$("#result"), historyEl=$("#history");
+  const expressionEl = document.getElementById("expression");
+  const resultEl = document.getElementById("result");
+  const messageEl = document.getElementById("display-message");
+  const keypad = document.getElementById("keypad");
+  const historyToggle = document.getElementById("history-toggle");
+  const historyPanel = document.getElementById("history-panel");
+  const historyList = document.getElementById("history-list");
+  const clearHistoryButton = document.getElementById("clear-history");
+  const themeToggle = document.getElementById("theme-toggle");
+  const toast = document.getElementById("toast");
 
-function clean(v){return v.replaceAll("×","*").replaceAll("÷","/").replaceAll("−","-").replace(/\^/g,"**").replace(/(\d+(?:\.\d+)?)%/g,"($1/100)")}
-function evaluate(v){
- let x=clean(v).replace(/\bpi\b/g,"Math.PI").replace(/\be\b/g,"Math.E");
- if(!/^[0-9+\-*/().\sA-Za-z]+$/.test(x)) throw Error();
- if(/Math\.(?!PI|E)/.test(x)) throw Error();
- return Function('"use strict";return ('+x+')')();
-}
-function fmt(n){
- if(!Number.isFinite(n)) return "Error";
- if(Math.abs(n)>=1e12 || (Math.abs(n)>0&&Math.abs(n)<1e-9)) return n.toExponential(8);
- return Number(n.toFixed(12)).toLocaleString("en-US",{maximumFractionDigits:12});
-}
-function preview(){try{return fmt(evaluate(expr))}catch{return expr?"…":"0"}}
-function render(){expressionEl.textContent=expr||"0";resultEl.textContent=preview()}
-function beep(){if(!sound)return;try{const c=new AudioContext(),o=c.createOscillator(),g=c.createGain();o.frequency.value=430;g.gain.value=.025;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.035)}catch{}}
-function add(v){
- beep();
- if(calculated&&/[0-9.]/.test(v))expr="";
- calculated=false;
- if(/[+\-*/]/.test(v)&&/[+\-*/]/.test(expr.slice(-1)))expr=expr.slice(0,-1);
- if(v==="."&&expr.split(/[+\-*/]/).pop().includes("."))return;
- if(v==="."&&!expr.split(/[+\-*/]/).pop())v="0.";
- expr+=v;render();
-}
-function calculate(){
- if(!expr)return;
- try{let raw=evaluate(expr),out=fmt(raw);if(out==="Error")throw Error();addHistory(expr,out);expr=String(raw);calculated=true;render();resultEl.textContent=out}
- catch{resultEl.textContent="Error"}
-}
-function addHistory(e,r){
- history.unshift({e,r});history=history.slice(0,50);localStorage.setItem("calcnova-pro-history",JSON.stringify(history));renderHistory();
-}
-function renderHistory(){
- if(!history.length){historyEl.innerHTML='<div class="empty">No calculations yet.</div>';return}
- historyEl.innerHTML=history.map((h,i)=>`<div class="history-item" data-i="${i}"><small>${esc(h.e)}</small><strong>= ${esc(h.r)}</strong></div>`).join("");
- $$(".history-item").forEach(x=>x.onclick=()=>{expr=history[+x.dataset.i].e;calculated=false;render()});
-}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+  let current = "0";
+  let expression = "";
+  let freshEntry = true;
+  let lastAnswer = 0;
+  let history = [];
+  let toastTimer;
 
-$$("[data-value]").forEach(b=>b.onclick=()=>add(b.dataset.value));
-$$("[data-calc]").forEach(b=>b.onclick=()=>{
- const a=b.dataset.calc,v=b.dataset.value;beep();
- if(a==="clear"){expr="";calculated=false;render()}
- else if(a==="backspace"){expr=expr.slice(0,-1);render()}
- else if(a==="equals")calculate();
- else if(a==="percent"){if(expr)expr+="%";render()}
- else if(a==="negate"){if(expr)expr=`-(${expr})`;render()}
- else if(a==="constant"){if(calculated)expr="";expr+=v;calculated=false;render()}
- else if(a==="square"){if(expr)expr=`(${expr})^2`;render()}
- else if(a==="cube"){if(expr)expr=`(${expr})^3`;render()}
- else if(a==="inverse"){if(expr)expr=`1/(${expr})`;render()}
- else if(a==="factorial"){
-   try{let n=evaluate(expr);if(n<0||n>170||!Number.isInteger(n))throw Error();let f=1;for(let i=2;i<=n;i++)f*=i;expr=String(f);calculated=true;render()}catch{resultEl.textContent="Error"}
- }
- else if(a==="func")scientific(v);
- else if(a==="memory")memoryAction(v);
-});
-function scientific(fn){
- try{
-  let n=evaluate(expr||"0"),rad=angle==="DEG"?n*Math.PI/180:n,out;
-  if(fn==="sin")out=Math.sin(rad);if(fn==="cos")out=Math.cos(rad);if(fn==="tan")out=Math.tan(rad);
-  if(fn==="asin")out=angle==="DEG"?Math.asin(n)*180/Math.PI:Math.asin(n);
-  if(fn==="acos")out=angle==="DEG"?Math.acos(n)*180/Math.PI:Math.acos(n);
-  if(fn==="atan")out=angle==="DEG"?Math.atan(n)*180/Math.PI:Math.atan(n);
-  if(fn==="sqrt")out=Math.sqrt(n);if(fn==="cbrt")out=Math.cbrt(n);if(fn==="log")out=Math.log10(n);if(fn==="ln")out=Math.log(n);
-  if(!Number.isFinite(out))throw Error();expr=String(out);calculated=true;render()
- }catch{resultEl.textContent="Error"}
-}
-function memoryAction(v){
- try{
-  if(v==="MC")memory=0;
-  if(v==="MR"){expr=String(memory);calculated=false}
-  if(v==="M+")memory+=evaluate(expr||"0");
-  if(v==="M-")memory-=evaluate(expr||"0");
-  render()
- }catch{resultEl.textContent="Error"}
-}
-$("#angleBtn").onclick=()=>{angle=angle==="DEG"?"RAD":"DEG";$("#angleBtn").textContent=angle};
-$("#scientificBtn").onclick=()=>$("#scientificPad").classList.toggle("hidden");
-$("#clearBtn").onclick=()=>{expr="";render()};
-$("#clearHistory").onclick=()=>{history=[];localStorage.removeItem("calcnova-pro-history");renderHistory()};
-$("#soundBtn").onclick=()=>{sound=!sound;$("#soundBtn").textContent=sound?"🔊":"🔇"};
-$("#themeBtn").onclick=()=>{document.body.classList.toggle("dark");localStorage.setItem("calcnova-pro-theme",document.body.classList.contains("dark")?"dark":"light")};
+  document.getElementById("year").textContent = new Date().getFullYear();
 
-$$(".tab").forEach(t=>t.onclick=()=>{$$(".tab").forEach(x=>x.classList.remove("active"));$$(".panel").forEach(x=>x.classList.remove("active-panel"));t.classList.add("active");$("#"+t.dataset.panel).classList.add("active-panel")});
-document.addEventListener("keydown",e=>{
- if(/^[0-9.]$/.test(e.key))add(e.key);else if(["+","-","*","/"].includes(e.key))add(e.key);else if(e.key==="Enter"||e.key==="=")calculate();else if(e.key==="Backspace"){expr=expr.slice(0,-1);render()}else if(e.key==="Escape"){expr="";render()}
-});
+  function showMessage(text, isError = false) {
+    messageEl.textContent = text;
+    messageEl.classList.toggle("error", isError);
+  }
 
-const units={
- length:{meter:1,kilometer:1000,centimeter:.01,millimeter:.001,mile:1609.344,yard:.9144,foot:.3048,inch:.0254},
- weight:{gram:1,kilogram:1000,milligram:.001,pound:453.59237,ounce:28.349523125,ton:1000000},
- area:{sqm:1,sqkm:1000000,sqcm:.0001,sqft:.09290304,sqyd:.83612736,acre:4046.8564224,hectare:10000},
- volume:{liter:1,milliliter:.001,cubic_meter:1000,gallon:3.785411784,quart:.946352946,pint:.473176473,cup:.2365882365},
- speed:{mps:1,kph:1/3.6,mph:.44704,knot:.514444444},
- time:{second:1,minute:60,hour:3600,day:86400,week:604800}
-};
-const names={meter:"Meter",kilometer:"Kilometer",centimeter:"Centimeter",millimeter:"Millimeter",mile:"Mile",yard:"Yard",foot:"Foot",inch:"Inch",gram:"Gram",kilogram:"Kilogram",milligram:"Milligram",pound:"Pound",ounce:"Ounce",ton:"Ton",sqm:"m²",sqkm:"km²",sqcm:"cm²",sqft:"ft²",sqyd:"yd²",acre:"Acre",hectare:"Hectare",liter:"Liter",milliliter:"Milliliter",cubic_meter:"m³",gallon:"Gallon",quart:"Quart",pint:"Pint",cup:"Cup",mps:"m/s",kph:"km/h",mph:"mph",knot:"Knot",second:"Second",minute:"Minute",hour:"Hour",day:"Day",week:"Week"};
-function fillUnits(){
- let c=$("#unitCategory").value,f=$("#unitFrom"),t=$("#unitTo");
- if(c==="temperature"){f.innerHTML=t.innerHTML=["celsius","fahrenheit","kelvin"].map(x=>`<option value="${x}">${x[0].toUpperCase()+x.slice(1)}</option>`).join("")}
- else{let o=Object.keys(units[c]).map(x=>`<option value="${x}">${names[x]}</option>`).join("");f.innerHTML=o;t.innerHTML=o}
- convert();
-}
-function convert(){
- let c=$("#unitCategory").value,v=Number($("#unitValue").value)||0,a=$("#unitFrom").value,b=$("#unitTo").value,out;
- if(c==="temperature"){
-  let cel=a==="celsius"?v:a==="fahrenheit"?(v-32)*5/9:v-273.15;
-  out=b==="celsius"?cel:b==="fahrenheit"?cel*9/5+32:cel+273.15
- }else{out=v*units[c][a]/units[c][b]}
- $("#unitResult").textContent=Number(out.toFixed(10)).toLocaleString("en-US");
-}
-$("#unitCategory").onchange=fillUnits;$("#unitFrom").onchange=convert;$("#unitTo").onchange=convert;$("#unitValue").oninput=convert;
+  function notify(text) {
+    toast.textContent = text;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2000);
+  }
 
-function updateProgrammer(){
- let n=Number($("#decInput").value)||0,i=Math.trunc(n);
- $("#hexOutput").textContent=(i>>>0).toString(16).toUpperCase();$("#binOutput").textContent=(i>>>0).toString(2);$("#octOutput").textContent=(i>>>0).toString(8);$("#decOutput").textContent=i.toLocaleString()
-}
-$("#decInput").oninput=updateProgrammer;
+  function formatNumber(value) {
+    if (!Number.isFinite(value)) throw new Error("That calculation is not a finite number.");
+    if (Object.is(value, -0)) value = 0;
+    const rounded = Number(value.toPrecision(12));
+    return String(rounded);
+  }
 
-function finance(){
- let p=+$("#siPrincipal").value||0,r=+$("#siRate").value||0,t=+$("#siTime").value||0,interest=p*r*t/100;$("#siInterest").textContent=fmt(interest);$("#siTotal").textContent=fmt(p+interest);
- let P=+$("#loanAmount").value||0,annual=+$("#loanRate").value||0,m=+$("#loanMonths").value||0,rate=annual/100/12,emi=rate?P*rate*Math.pow(1+rate,m)/(Math.pow(1+rate,m)-1):P/m;$("#emiResult").textContent=fmt(emi);
- let pv=+$("#pctValue").value||0,po=+$("#pctOf").value||0;$("#pctResult").textContent=fmt(pv/100*po)
-}
-$$(".finance-grid input").forEach(x=>x.oninput=finance);
+  function prettyNumber(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return String(value);
+    return new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }).format(n);
+  }
 
-if(localStorage.getItem("calcnova-pro-theme")==="dark")document.body.classList.add("dark");
-render();renderHistory();fillUnits();updateProgrammer();finance();
+  function render() {
+    expressionEl.textContent = expression || current;
+    resultEl.textContent = prettyNumber(current);
+    resultEl.title = current;
+  }
+
+  function inputDigit(digit) {
+    if (freshEntry) {
+      current = digit;
+      expression = "";
+      freshEntry = false;
+    } else if (current.replace("-", "").length < 16) {
+      current = current === "0" ? digit : current + digit;
+    }
+    showMessage("Ready when you are");
+    render();
+  }
+
+  function inputDecimal() {
+    if (freshEntry) {
+      current = "0.";
+      expression = "";
+      freshEntry = false;
+    } else if (!current.includes(".")) {
+      current += ".";
+    }
+    render();
+  }
+
+  function setOperator(operator) {
+    if (expression && /[+−×÷]$/.test(expression)) {
+      expression = expression.slice(0, -1) + operator;
+    } else {
+      expression = (expression ? expression + current : current) + operator;
+    }
+    freshEntry = true;
+    showMessage("Choose the next number");
+    render();
+  }
+
+  // Safe arithmetic parser: only numbers and the four supported operators are accepted.
+  // No eval() or Function() is used.
+  function tokenize(input) {
+    const normalized = input.replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-").replace(/\s+/g, "");
+    const tokens = [];
+    let i = 0;
+    while (i < normalized.length) {
+      const rest = normalized.slice(i);
+      const numberMatch = rest.match(/^(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/i);
+      if (numberMatch) {
+        tokens.push(Number(numberMatch[0]));
+        i += numberMatch[0].length;
+        continue;
+      }
+      const ch = normalized[i];
+      if ("+-*/()".includes(ch)) {
+        tokens.push(ch);
+        i++;
+        continue;
+      }
+      throw new Error("Please check the expression.");
+    }
+    return tokens;
+  }
+
+  function calculate(input) {
+    const tokens = tokenize(input);
+    let pos = 0;
+
+    function parsePrimary() {
+      const token = tokens[pos];
+      if (token === "+" || token === "-") {
+        pos++;
+        const val = parsePrimary();
+        return token === "-" ? -val : val;
+      }
+      if (token === "(") {
+        pos++;
+        const val = parseExpression();
+        if (tokens[pos] !== ")") throw new Error("Missing closing bracket.");
+        pos++;
+        return val;
+      }
+      if (typeof token === "number" && Number.isFinite(token)) {
+        pos++;
+        return token;
+      }
+      throw new Error("Please enter a number.");
+    }
+
+    function parseTerm() {
+      let value = parsePrimary();
+      while (tokens[pos] === "*" || tokens[pos] === "/") {
+        const op = tokens[pos++];
+        const right = parsePrimary();
+        if (op === "/" && right === 0) throw new Error("Cannot divide by zero.");
+        value = op === "*" ? value * right : value / right;
+      }
+      return value;
+    }
+
+    function parseExpression() {
+      let value = parseTerm();
+      while (tokens[pos] === "+" || tokens[pos] === "-") {
+        const op = tokens[pos++];
+        const right = parseTerm();
+        value = op === "+" ? value + right : value - right;
+      }
+      return value;
+    }
+
+    if (!tokens.length) throw new Error("Enter a calculation first.");
+    const answer = parseExpression();
+    if (pos !== tokens.length) throw new Error("Please check the expression.");
+    return Number(formatNumber(answer));
+  }
+
+  function fullExpression() {
+    let value = expression;
+    if (/[+−×÷]$/.test(value)) value += current;
+    else if (!value) value = current;
+    return value;
+  }
+
+  function addHistory(expr, answer) {
+    history.unshift({ expr, answer: formatNumber(answer) });
+    history = history.slice(0, 8);
+    renderHistory();
+  }
+
+  function renderHistory() {
+    historyList.replaceChildren();
+    if (!history.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-state";
+      empty.textContent = "Your calculations will appear here.";
+      historyList.appendChild(empty);
+      return;
+    }
+    history.forEach((item) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "history-item";
+      const expr = document.createElement("span");
+      expr.className = "history-expression";
+      expr.textContent = item.expr + " =";
+      const answer = document.createElement("span");
+      answer.className = "history-result";
+      answer.textContent = prettyNumber(item.answer);
+      button.append(expr, answer);
+      button.addEventListener("click", () => {
+        current = item.answer;
+        expression = item.expr + " =";
+        freshEntry = true;
+        lastAnswer = Number(item.answer);
+        render();
+        showMessage("Loaded from history");
+      });
+      historyList.appendChild(button);
+    });
+  }
+
+  function equals() {
+    const expr = fullExpression();
+    try {
+      const answer = calculate(expr);
+      addHistory(expr, answer);
+      current = formatNumber(answer);
+      lastAnswer = answer;
+      expression = expr + " =";
+      freshEntry = true;
+      showMessage("Calculation complete");
+      render();
+    } catch (error) {
+      showMessage(error.message || "Unable to calculate.", true);
+    }
+  }
+
+  function clearAll() {
+    current = "0";
+    expression = "";
+    freshEntry = true;
+    showMessage("Ready when you are");
+    render();
+  }
+
+  function backspace() {
+    if (freshEntry) {
+      current = "0";
+      freshEntry = false;
+    } else {
+      current = current.length <= 1 || (current.length === 2 && current.startsWith("-"))
+        ? "0" : current.slice(0, -1);
+    }
+    render();
+  }
+
+  function unaryAction(action) {
+    const n = Number(current);
+    let answer;
+    let label;
+    switch (action) {
+      case "sign": answer = -n; label = "Sign changed"; break;
+      case "percent": answer = n / 100; label = "Converted to percent"; break;
+      case "square": answer = n * n; label = "Squared"; break;
+      case "sqrt":
+        if (n < 0) { showMessage("Square root needs a non-negative number.", true); return; }
+        answer = Math.sqrt(n); label = "Square root calculated"; break;
+      case "reciprocal":
+        if (n === 0) { showMessage("Zero has no reciprocal.", true); return; }
+        answer = 1 / n; label = "Reciprocal calculated"; break;
+      case "pi": answer = Math.PI; label = "Pi constant inserted"; break;
+      default: return;
+    }
+    try {
+      const formatted = formatNumber(answer);
+      const old = current;
+      current = formatted;
+      expression = action === "pi" ? "π" : action === "square" ? `(${old})²` :
+        action === "sqrt" ? `√(${old})` : action === "reciprocal" ? `1 ÷ (${old})` :
+        action === "percent" ? `${old}%` : `−(${old})`;
+      freshEntry = true;
+      showMessage(label);
+      render();
+      if (action !== "pi") addHistory(expression, answer);
+    } catch (error) {
+      showMessage(error.message, true);
+    }
+  }
+
+  function handleAction(action) {
+    switch (action) {
+      case "clear": clearAll(); break;
+      case "backspace": backspace(); break;
+      case "decimal": inputDecimal(); break;
+      case "equals": equals(); break;
+      default: unaryAction(action);
+    }
+  }
+
+  function handleValue(value) {
+    if (/^\d$/.test(value)) inputDigit(value);
+    else if (value === ".") inputDecimal();
+    else if (["+", "−", "×", "÷"].includes(value)) setOperator(value);
+  }
+
+  keypad.addEventListener("click", (event) => {
+    const button = event.target.closest("button");
+    if (!button) return;
+    if (button.dataset.value !== undefined) handleValue(button.dataset.value);
+    else if (button.dataset.action) handleAction(button.dataset.action);
+  });
+
+  document.querySelectorAll(".shortcut").forEach((button) => {
+    button.addEventListener("click", () => handleAction(button.dataset.action));
+  });
+
+  historyToggle.addEventListener("click", () => {
+    const willOpen = historyPanel.hidden;
+    historyPanel.hidden = !willOpen;
+    historyToggle.setAttribute("aria-expanded", String(willOpen));
+    if (willOpen) historyPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+
+  clearHistoryButton.addEventListener("click", () => {
+    history = [];
+    renderHistory();
+    notify("Calculation history cleared");
+  });
+
+  themeToggle.addEventListener("click", () => {
+    const light = document.body.classList.toggle("light-theme");
+    themeToggle.textContent = light ? "☾" : "☼";
+    themeToggle.setAttribute("aria-label", light ? "Switch to dark theme" : "Switch to light theme");
+    document.querySelector('meta[name="theme-color"]').content = light ? "#f1f3f8" : "#10131f";
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const active = document.activeElement;
+    if (active && ["BUTTON", "A", "INPUT", "TEXTAREA"].includes(active.tagName) && event.key !== "Enter") return;
+    if (/^\d$/.test(event.key)) { inputDigit(event.key); return; }
+    if (event.key === ".") { inputDecimal(); return; }
+    if (event.key === "+") { setOperator("+"); return; }
+    if (event.key === "-") { setOperator("−"); return; }
+    if (event.key === "*") { setOperator("×"); return; }
+    if (event.key === "/") { event.preventDefault(); setOperator("÷"); return; }
+    if (event.key === "Enter" || event.key === "=") { event.preventDefault(); equals(); return; }
+    if (event.key === "Backspace") { event.preventDefault(); backspace(); return; }
+    if (event.key === "Escape" || event.key === "Delete") { clearAll(); }
+    if (event.key === "%") { unaryAction("percent"); }
+  });
+
+  document.getElementById("top-link").addEventListener("click", (event) => {
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  render();
+  renderHistory();
+})();
