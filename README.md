@@ -1,61 +1,83 @@
-# CalcNova 🧮
+# CalcNova Pro 🧮
 
-CalcNova is a modern, responsive online calculator made with pure HTML, CSS and JavaScript.
+CalcNova Pro is an advanced, responsive calculator website built with HTML, CSS and JavaScript. It is designed to work directly on GitHub Pages without a backend.
 
-## Features
+## Included tools
 
-- Basic arithmetic: +, −, ×, ÷
+### Calculator
+- Addition, subtraction, multiplication and division
 - Percentage
-- Decimal calculations
-- Scientific mode
-- π and e constants
+- Decimal numbers
+- Positive/negative
+- Backspace
+- Scientific functions
 - sin, cos, tan
-- √, log, ln
-- x² and 1/x
-- Calculation history
-- History saved in localStorage
-- Dark/light mode
-- Keyboard support
-- Mobile responsive design
-- No backend required
-- GitHub Pages ready
+- inverse trigonometric functions
+- square root and cube root
+- log and natural log
+- x², x³, 1/x
+- factorial
+- π and e
+- DEG/RAD mode
+- Memory: MC, MR, M+, M-
+- Keyboard controls
+- Calculation history using localStorage
 
-## Project files
+### Converter
+- Length
+- Weight
+- Temperature
+- Area
+- Volume
+- Speed
+- Time
+
+### Programmer
+- Decimal
+- Binary
+- Hexadecimal
+- Octal
+
+### Finance
+- Simple interest
+- Loan EMI
+- Percentage calculator
+
+### Design
+- Custom DM Sans + Space Mono typography
+- Dark/light mode
+- Responsive mobile design
+- Modern green/cream interface
+
+## Files
 
 ```text
-CalcNova/
+CalcNova-Pro/
 ├── index.html
 ├── style.css
 ├── script.js
 └── README.md
 ```
 
-## Run locally
+## GitHub Pages
 
-Just open `index.html` in your browser.
+1. Create a new GitHub repository, e.g. `calcnova-pro`.
+2. Upload all four files to the root of the repository.
+3. Open **Settings → Pages**.
+4. Select **Deploy from a branch**.
+5. Select branch **main** and folder **/ (root)**.
+6. Save.
 
-For VS Code, install the Live Server extension if you want a local development server.
+Your site will be available at:
 
-## Publish on GitHub Pages
+```text
+https://YOUR-USERNAME.github.io/calcnova-pro/
+```
 
-1. Create a new GitHub repository, for example `calcnova`.
-2. Upload `index.html`, `style.css`, `script.js`, and `README.md`.
-3. Open the repository's **Settings → Pages**.
-4. Under **Build and deployment**, choose:
-   - Source: **Deploy from a branch**
-   - Branch: **main**
-   - Folder: **/ (root)**
-5. Save.
-6. GitHub will provide your live website URL.
+## Important
 
-Example:
-
-`https://YOUR-USERNAME.github.io/calcnova/`
-
-## Customize
-
-You can change the website name, logo, text and CSS colors directly in `index.html` and `style.css`.
+The Google Fonts link requires internet access. If you want the site to use only local files, replace the Google Fonts import with a local/system font stack.
 
 ## License
 
-Free to use and customize for personal or educational projects.
+Free to use, modify and publish.

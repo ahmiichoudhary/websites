@@ -3,87 +3,209 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="CalcNova - fast, modern and responsive online calculator.">
-  <title>CalcNova — Online Calculator</title>
+  <meta name="description" content="CalcNova Pro — advanced online calculator with scientific, programmer, finance and unit conversion tools.">
+  <title>CalcNova Pro — Advanced Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="app">
-    <header class="topbar">
+  <div class="shell">
+    <header class="header">
       <div class="brand">
-        <div class="logo">C</div>
+        <div class="brand-mark">N</div>
         <div>
-          <h1>CalcNova</h1>
-          <p>Smart Online Calculator</p>
+          <h1>CalcNova <span>PRO</span></h1>
+          <p>Advanced calculation workspace</p>
         </div>
       </div>
-      <button id="themeBtn" class="icon-btn" aria-label="Toggle theme">☀</button>
+      <div class="header-actions">
+        <button id="soundBtn" class="small-btn" title="Toggle key sounds">🔊</button>
+        <button id="themeBtn" class="small-btn" title="Toggle theme">☾</button>
+      </div>
     </header>
 
-    <section class="calculator">
-      <div class="display">
-        <div id="expression" class="expression">0</div>
-        <div id="result" class="result">0</div>
-      </div>
+    <nav class="tabs">
+      <button class="tab active" data-panel="calculator">Calculator</button>
+      <button class="tab" data-panel="converter">Converter</button>
+      <button class="tab" data-panel="programmer">Programmer</button>
+      <button class="tab" data-panel="finance">Finance</button>
+    </nav>
 
-      <div class="toolbar">
-        <button id="modeBtn" class="tool-btn">Scientific</button>
-        <button id="clearHistoryBtn" class="tool-btn">Clear History</button>
-      </div>
+    <section id="calculator" class="panel active-panel">
+      <div class="workspace">
+        <div class="calculator-card">
+          <div class="display">
+            <div id="expression" class="expression">0</div>
+            <div id="result" class="result">0</div>
+          </div>
 
-      <div id="scientificPad" class="scientific hidden">
-        <button data-action="constant" data-value="Math.PI">π</button>
-        <button data-action="constant" data-value="Math.E">e</button>
-        <button data-action="func" data-value="sin">sin</button>
-        <button data-action="func" data-value="cos">cos</button>
-        <button data-action="func" data-value="tan">tan</button>
-        <button data-action="func" data-value="sqrt">√</button>
-        <button data-action="func" data-value="log">log</button>
-        <button data-action="func" data-value="ln">ln</button>
-        <button data-action="square">x²</button>
-        <button data-action="inverse">1/x</button>
-      </div>
+          <div class="mode-row">
+            <button id="angleBtn" class="pill">DEG</button>
+            <button id="scientificBtn" class="pill">Scientific</button>
+            <button id="clearBtn" class="pill danger">Clear</button>
+          </div>
 
-      <div class="keypad">
-        <button class="danger" data-action="clear">AC</button>
-        <button data-action="backspace">⌫</button>
-        <button data-action="percent">%</button>
-        <button class="operator" data-value="/">÷</button>
+          <div id="scientificPad" class="scientific-pad">
+            <button data-calc="func" data-value="sin">sin</button>
+            <button data-calc="func" data-value="cos">cos</button>
+            <button data-calc="func" data-value="tan">tan</button>
+            <button data-calc="func" data-value="asin">sin⁻¹</button>
+            <button data-calc="func" data-value="acos">cos⁻¹</button>
+            <button data-calc="func" data-value="atan">tan⁻¹</button>
+            <button data-calc="func" data-value="sqrt">√</button>
+            <button data-calc="func" data-value="cbrt">∛</button>
+            <button data-calc="func" data-value="log">log</button>
+            <button data-calc="func" data-value="ln">ln</button>
+            <button data-calc="square">x²</button>
+            <button data-calc="cube">x³</button>
+            <button data-calc="inverse">1/x</button>
+            <button data-calc="factorial">n!</button>
+            <button data-calc="constant" data-value="pi">π</button>
+            <button data-calc="constant" data-value="e">e</button>
+          </div>
 
-        <button data-value="7">7</button>
-        <button data-value="8">8</button>
-        <button data-value="9">9</button>
-        <button class="operator" data-value="*">×</button>
+          <div class="keypad">
+            <button class="utility" data-calc="memory" data-value="MC">MC</button>
+            <button class="utility" data-calc="memory" data-value="MR">MR</button>
+            <button class="utility" data-calc="memory" data-value="M+">M+</button>
+            <button class="utility" data-calc="memory" data-value="M-">M−</button>
 
-        <button data-value="4">4</button>
-        <button data-value="5">5</button>
-        <button data-value="6">6</button>
-        <button class="operator" data-value="-">−</button>
+            <button class="danger-key" data-calc="clear">AC</button>
+            <button data-calc="backspace">⌫</button>
+            <button data-calc="percent">%</button>
+            <button class="operator" data-value="/">÷</button>
 
-        <button data-value="1">1</button>
-        <button data-value="2">2</button>
-        <button data-value="3">3</button>
-        <button class="operator" data-value="+">+</button>
+            <button data-value="7">7</button>
+            <button data-value="8">8</button>
+            <button data-value="9">9</button>
+            <button class="operator" data-value="*">×</button>
 
-        <button class="zero" data-value="0">0</button>
-        <button data-value=".">.</button>
-        <button class="equals" data-action="equals">=</button>
-      </div>
+            <button data-value="4">4</button>
+            <button data-value="5">5</button>
+            <button data-value="6">6</button>
+            <button class="operator" data-value="-">−</button>
 
-      <section class="history-section">
-        <div class="history-title">
-          <h2>History</h2>
-          <span id="historyCount">0 calculations</span>
+            <button data-value="1">1</button>
+            <button data-value="2">2</button>
+            <button data-value="3">3</button>
+            <button class="operator" data-value="+">+</button>
+
+            <button data-calc="negate">±</button>
+            <button class="zero" data-value="0">0</button>
+            <button data-value=".">.</button>
+            <button class="equals" data-calc="equals">=</button>
+          </div>
         </div>
-        <div id="history" class="history">
-          <p class="empty">Your calculations will appear here.</p>
-        </div>
-      </section>
+
+        <aside class="history-card">
+          <div class="section-head">
+            <div>
+              <h2>History</h2>
+              <p>Saved on this device</p>
+            </div>
+            <button id="clearHistory" class="text-btn">Clear</button>
+          </div>
+          <div id="history" class="history-list"></div>
+        </aside>
+      </div>
     </section>
 
-    <footer>CalcNova • Built with HTML, CSS & JavaScript • GitHub Pages ready</footer>
-  </main>
+    <section id="converter" class="panel">
+      <div class="tool-card">
+        <div class="section-head">
+          <div>
+            <h2>Unit Converter</h2>
+            <p>Length, weight, temperature, area, volume, speed and time</p>
+          </div>
+        </div>
+        <div class="converter-grid">
+          <label>Category
+            <select id="unitCategory">
+              <option value="length">Length</option>
+              <option value="weight">Weight</option>
+              <option value="temperature">Temperature</option>
+              <option value="area">Area</option>
+              <option value="volume">Volume</option>
+              <option value="speed">Speed</option>
+              <option value="time">Time</option>
+            </select>
+          </label>
+          <label>From
+            <select id="unitFrom"></select>
+          </label>
+          <label>To
+            <select id="unitTo"></select>
+          </label>
+          <label>Value
+            <input id="unitValue" type="number" value="1" step="any">
+          </label>
+        </div>
+        <div class="conversion-result">
+          <span>Result</span>
+          <strong id="unitResult">—</strong>
+        </div>
+      </div>
+    </section>
 
+    <section id="programmer" class="panel">
+      <div class="tool-card">
+        <div class="section-head">
+          <div>
+            <h2>Programmer Calculator</h2>
+            <p>Convert numbers between DEC, HEX, BIN and OCT</p>
+          </div>
+        </div>
+        <div class="programmer-input">
+          <label>Decimal number
+            <input id="decInput" type="number" value="255">
+          </label>
+        </div>
+        <div class="number-grid">
+          <div><span>HEX</span><strong id="hexOutput">FF</strong></div>
+          <div><span>BIN</span><strong id="binOutput">11111111</strong></div>
+          <div><span>OCT</span><strong id="octOutput">377</strong></div>
+          <div><span>DEC</span><strong id="decOutput">255</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="finance" class="panel">
+      <div class="finance-grid">
+        <div class="tool-card">
+          <h2>Simple Interest</h2>
+          <div class="form-stack">
+            <label>Principal <input id="siPrincipal" type="number" value="10000"></label>
+            <label>Rate % <input id="siRate" type="number" value="10" step="any"></label>
+            <label>Time (years) <input id="siTime" type="number" value="2" step="any"></label>
+          </div>
+          <div class="mini-result">Interest: <strong id="siInterest">2,000</strong><br>Total: <strong id="siTotal">12,000</strong></div>
+        </div>
+
+        <div class="tool-card">
+          <h2>Loan / EMI</h2>
+          <div class="form-stack">
+            <label>Loan amount <input id="loanAmount" type="number" value="100000"></label>
+            <label>Annual rate % <input id="loanRate" type="number" value="12" step="any"></label>
+            <label>Months <input id="loanMonths" type="number" value="12"></label>
+          </div>
+          <div class="mini-result">Monthly EMI: <strong id="emiResult">8,885.24</strong></div>
+        </div>
+
+        <div class="tool-card">
+          <h2>Percentage</h2>
+          <div class="form-stack">
+            <label>Value <input id="pctValue" type="number" value="25"></label>
+            <label>Of <input id="pctOf" type="number" value="200"></label>
+          </div>
+          <div class="mini-result">Result: <strong id="pctResult">50</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>CalcNova Pro • GitHub Pages Ready • HTML + CSS + JavaScript</footer>
+  </div>
   <script src="script.js"></script>
 </body>
 </html>
